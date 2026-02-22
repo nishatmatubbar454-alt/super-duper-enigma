@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Banking</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f2f2f2;
+}
+.box{
+  max-width:420px;
+  margin:20px auto;
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+.header{
+  background:#d81b60;
+  color:#fff;
+  text-align:center;
+  padding:14px;
+  font-size:20px;
+}
+.tabs{
+  display:flex;
+  gap:10px;
+  padding:12px;
+}
+.tabs button{
+  flex:1;
+  padding:10px;
+  border-radius:8px;
+  border:2px solid #ddd;
+  font-weight:bold;
+  cursor:pointer;
+}
+.tabs .active-bkash{border-color:#d81b60;color:#d81b60;}
+.tabs .active-nagad{border-color:#f57c00;color:#f57c00;}
+
+.content{
+  padding:15px;
+  background:#d81b60;
+  color:#fff;
+}
+.nagad-theme{background:#f57c00;}
+
+.line{border-bottom:1px solid rgba(255,255,255,.4);margin:10px 0;}
+
+.number-box{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#b0003a;
+  padding:10px;
+  border-radius:8px;
+}
+.nagad-theme .number-box{background:#e65100;}
+
+.copy-btn{
+  background:#000;
+  color:#fff;
+  border:none;
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.input-box{
+  background:#fff;
+  padding:10px;
+  border-radius:10px;
+  margin-top:12px;
+}
+.input-box input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-bottom:10px;
+}
+
+.file-box{
+  border:2px dashed #ccc;
+  padding:12px;
+  border-radius:8px;
+  text-align:center;
+}
+
+.submit-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#d81b60;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+}
+.nagad-theme .submit-btn{background:#f57c00;}
+
+.warning{
+  margin:10px;
+  font-size:13px;
+  color:#c62828;
+}
+
+.notice{
+  display:none;
+  background:#e8f5e9;
+  color:#2e7d32;
+  padding:15px;
+  margin:15px;
+  border-radius:10px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <div class="header">মোবাইল ব্যাংকিং</div>
+
+  <div class="tabs">
+    <button id="bkashBtn" class="active-bkash" onclick="selectPay('bkash')">bKash</button>
+    <button id="nagadBtn" onclick="selectPay('nagad')">Nagad</button>
+  </div>
+    <div class="line"></div>
+    টাকার পরিমাণ: ৳25.00
+    <div class="line"></div>
+    
+  <div id="content" class="content">
+    *167# ডায়াল করে App খুলুন
+    <div class="line"></div>
+    "Send Money" ক্লিক করুন
+    <div class="line"></div>
+    
+    <div class="line"></div>
+    টাকা সঠিক ভাবে লেনদেন করেন
+    <div class="line"></div>
+    
+    প্রাপক নম্বর
+    <div class="number-box">
+      <b id="payNumber">01977187976</b>
+      <button class="copy-btn" onclick="copyNumber()">Copy</button>
+    </div>
+
+
+
+    নিচে Transaction ID ও Screenshot জমা দিন
+
+    <div class="input-box">
+      <input id="trxid" placeholder="TrxID (যেমন: AB12CD34EF)">
+      <div class="file-box">
+        <input type="file" id="ss">
+      </div>
+      <button class="submit-btn" onclick="submitData()">VERIFY / জমা দিন</button>
+    </div>
+  </div>
+
+  <div class="warning">
+    ⚠️ সতর্কতা: ভুল Transaction ID বা ভুয়া Screenshot দিলে একাউন্ট স্থায়ীভাবে Suspend করা হবে।
+  </div>
+
+  <div id="notice" class="notice">
+    ✅ আপনি যদি সঠিক লেনদেন করে থাকেন, অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।<br>
+    এপ্রুভ হয়ে যাবে।
+  </div>
+</div>
+
+<script>
+let currentPay="bkash";
+
+function selectPay(type){
+  currentPay=type;
+  const c=document.getElementById("content");
+  if(type==="nagad"){
+    c.classList.add("nagad-theme");
+    nagadBtn.classList.add("active-nagad");
+    bkashBtn.classList.remove("active-bkash");
+    document.getElementById("payNumber").innerText="01910299293";
+  }else{
+    c.classList.remove("nagad-theme");
+    bkashBtn.classList.add("active-bkash");
+    nagadBtn.classList.remove("active-nagad");
+    document.getElementById("payNumber").innerText="01977187976";
+  }
+}
+
+function copyNumber(){
+  navigator.clipboard.writeText(document.getElementById("payNumber").innerText);
+  alert("Number copied");
+}
+
+function submitData(){
+  const trx=document.getElementById("trxid").value;
+  const file=document.getElementById("ss").files[0];
+  if(!trx||!file){alert("সব তথ্য দিন");return;}
+
+  const reader=new FileReader();
+  reader.onload=function(){
+    let data=JSON.parse(localStorage.getItem("payments")||"[]");
+    data.push({pay:currentPay,trx:trx,img:reader.result});
+    localStorage.setItem("payments",JSON.stringify(data));
+    document.getElementById("notice").style.display="block";
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
